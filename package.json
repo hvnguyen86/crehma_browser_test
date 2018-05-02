@@ -7,9 +7,6 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node server.js"
   },
-  "author": "",
-  "license": "MIT",
-  "dependencies": {
-    "system-sleep": "1.3.5"
-  }
+  "author": "Hoai Viet Nguyen",
+  "license": "MIT"
 }
