@@ -32,6 +32,7 @@ $(".testcases").each(function(){
             html += `<button url="${url}" class='createTag btn btn-sm btn-secondary' tag="script">Script Tag</button> `
             html += `<button url="${url}" class='createTag btn btn-sm btn-secondary' tag="style">Style Tag</button> `
             html += `<button url="${url}" class='createAjax btn btn-sm btn-secondary' method="${requestResponseDefinition.method}">Ajax</button> `
+            html += `<button url="${url}" class='createLocation btn btn-sm btn-secondary'>window.location</button> `
             html += "<br>";
         }
 
@@ -62,6 +63,12 @@ $("body").on("click","button.createAjax",function(){
 	xhr.open(method,url,false);
 	xhr.send();
 	
+});
+
+$("body").on("click","button.createLocation",function(){
+  
+  window.location = $(this).attr("url");
+  
 });
 
 function parseAccept(accept){

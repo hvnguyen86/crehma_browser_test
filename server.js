@@ -19,9 +19,9 @@ var timeStamps = {};
 
 function requestHandler(req, res) {
     // Uncomment to enable logging
-    // console.log(req.url);
-    // console.log(req.headers);
-    // console.log("-----")
+    console.log(req.url);
+    console.log(req.headers);
+    console.log("-----")
 
     var responseString = req.headers["x-response"] ? req.headers["x-response"] : "";
 
@@ -32,7 +32,6 @@ function requestHandler(req, res) {
     // Specifiying the response with url query
     if (query.rs) {
         queryParamsResponse = parseResponseString(query.rs);
-        console.log(queryParamsResponse);
     }
 
     var urlPath = urlObject.pathname;
@@ -70,10 +69,10 @@ function requestHandler(req, res) {
 
     // For XHR
     res.setHeader("Access-Control-Allow-Origin", "*");
-    res.setHeader("Access-Control-Allow-Headers", "*");
-    res.setHeader("Access-Control-Expose-Headers", "*")
+    res.setHeader("Access-Control-Allow-Headers", "X-Id, X-Response, Cache-Control, Set-Cookie");
+    res.setHeader("Access-Control-Expose-Headers", "X-Id, Id, Content-Length, Content-Type, Warning, Cache-Control, Set-Cookie")
     res.setHeader("Access-Control-Allow-Credentials", "true");
-    res.setHeader("Access-Control-Allow-Methods", "*");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PATCH, PUT");
 
     res.setHeader("Date", new Date(Date.now()).toUTCString());
 
@@ -133,7 +132,7 @@ function requestHandler(req, res) {
             } else if (key == "t") {
                 continue;
             } else if (key == "sc") {
-                res.setHeader("Set-Cookie", rand_string(16));
+                res.setHeader("Set-Cookie", "sid=" + rand_string(16));
             } else if (key == "xsf") {
                 res.setHeader("X-Store-Forbidden", "This header field is forbidden to store");
             } else if (headerFields[key]) {
@@ -145,11 +144,9 @@ function requestHandler(req, res) {
 
         // Set desired resource represenation data format
         if (accept == "application/json") {
-
             res.setHeader("Content-Type", accept);
             var bodyJson = {};
             bodyJson["Id"] = id;
-
             body = JSON.stringify(bodyJson);
         } else if (accept == "application/xml") {
             res.setHeader("Content-Type", accept);
@@ -160,7 +157,6 @@ function requestHandler(req, res) {
         } else if (accept == "image/png" || tag == "img") {
             res.setHeader("Content-Type", accept);
             body = fs.readFileSync("./das_logo.png");
-
         } else if (accept == "text/plain") {
             res.setHeader("Content-Type", "text/plain");
         } else if (accept == "application/javascript" || tag == "script"){
