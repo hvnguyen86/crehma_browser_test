@@ -50,6 +50,12 @@ GET /rsc -c 'ac:application/json' -s 'cc:max-age=60'
 ## Relative freshness lifetime: max-age=3600
 GET /rsc -c 'ac:application/json' -s 'cc:max-age=3600'
 
+## Relative freshness lifetime: max-age=3600
+GET /rsc -c 'ac:application/json' -s 'cc:max-age=3600,public'
+
+## Relative freshness lifetime: max-age=3600
+GET /rsc -c 'ac:application/json' -s 'cc:max-age=3600,private'
+
 ## Relative freshness lifetime: max-age=0
 GET /rsc -c 'ac:application/json' -s 'cc:max-age=0'
                         </textarea>

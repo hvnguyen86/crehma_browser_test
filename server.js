@@ -181,6 +181,10 @@ function requestHandler(req, res) {
         var body  = fs.readFileSync("index.html");
 
         return res.end(body);
+    } else if(urlPath == "/testpage"){
+        var body  = fs.readFileSync("testPage.html");
+
+        return res.end(body);
     } else {
       // parse URL
       const parsedUrl = url.parse(req.url);
