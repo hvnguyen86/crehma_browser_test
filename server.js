@@ -189,7 +189,7 @@ function requestHandler(req, res) {
       // parse URL
       const parsedUrl = url.parse(req.url);
       // extract URL path
-      let pathname = `.${parsedUrl.pathname}`;
+      var pathname = `.${parsedUrl.pathname}`;
       // maps file extention to MIME types
       const mimeType = {
         '.ico': 'image/x-icon',
