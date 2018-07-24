@@ -23,11 +23,11 @@ function requestHandler(req, res) {
     console.log(req.headers);
     console.log("-----")
     var body = "";
-    res.on('data', function(chunk) {
+    req.on('data', function(chunk) {
         body += chunk;
     });
 
-    res.on('end', function() {
+    req.on('end', function() {
         console.log("Body:");
         console.log(body);
         console.log("Body-Length:", body.length);
