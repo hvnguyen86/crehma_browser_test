@@ -19,6 +19,7 @@ var timeStamps = {};
 
 function requestHandler(req, res) {
     // Uncomment to enable logging
+    console.log(req.method);
     console.log(req.url);
     console.log(req.headers);
     console.log("-----")
