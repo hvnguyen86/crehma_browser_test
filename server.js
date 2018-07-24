@@ -22,6 +22,17 @@ function requestHandler(req, res) {
     console.log(req.url);
     console.log(req.headers);
     console.log("-----")
+    var body = "";
+    res.on('data', function(chunk) {
+        body += chunk;
+    });
+
+    res.on('end', function() {
+        console.log("Body:");
+        console.log(body);
+        console.log("Body-Length:", body.length);
+        console.log("-----")
+    });
 
     var responseString = req.headers["x-response"] ? req.headers["x-response"] : "";
 
@@ -51,6 +62,10 @@ function requestHandler(req, res) {
     }
 
     var timeStamp = query["ts"];
+
+    if (query["res"]){
+            res.setHeader("X-Response-Splitting-Url",decodeURI(query["res"]));
+    }
 
     res.setHeader("X-Client-IP", req.connection.remoteAddress)
 
@@ -119,6 +134,8 @@ function requestHandler(req, res) {
         if (req.headers["x-response-splitting"]) {
             res.setHeader("X-Response-Splitting", req.headers["x-response-splitting"]);
         }
+
+
 
         // Set header fields specified by the client
         for (var key in queryParamsResponse) {
@@ -222,7 +239,7 @@ function requestHandler(req, res) {
         fs.readFile(pathname, function(err, data){
           if(err){
             res.statusCode = 500;
-            res.end(`Error getting the file: ${err}.`);
+            res.end("Error getting the file: ${err}.");
           } else {
             // based on the URL path, extract the file extention. e.g. .js, .doc, ...
             const ext = path.parse(pathname).ext;
@@ -233,7 +250,6 @@ function requestHandler(req, res) {
         });
       });
     }
-
 
 }
 
