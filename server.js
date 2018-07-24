@@ -22,15 +22,15 @@ function requestHandler(req, res) {
     console.log(req.url);
     console.log(req.headers);
     console.log("-----")
-    var body = "";
+    var requestBody = "";
     req.on('data', function(chunk) {
-        body += chunk;
+        requestBody += chunk;
     });
 
     req.on('end', function() {
         console.log("Body:");
-        console.log(body);
-        console.log("Body-Length:", body.length);
+        console.log(requestBody);
+        console.log("Body-Length:", requestBody.length);
         console.log("-----")
     });
 
