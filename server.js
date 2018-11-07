@@ -13,6 +13,8 @@ var headerFields = {
     "va": "Vary"
 };
 
+var unsafeMethods = ["POST","DELETE","PATCH","PUT"];
+
 var httpServer = http.createServer(requestHandler);
 var lastModified;
 var timeStamps = {};
@@ -34,6 +36,8 @@ function requestHandler(req, res) {
         console.log("Body-Length:", requestBody.length);
         console.log("-----")
     });
+
+    console.log(req.headers["accept-language"]);
 
     var responseString = req.headers["x-response"] ? req.headers["x-response"] : "";
 
@@ -158,7 +162,15 @@ function requestHandler(req, res) {
             }
         }
 
+        
+
         var body = "Id:" + id;
+
+        if(req.headers["x-http-method-override"] && unsafeMethods.includes(req.headers["x-http-method-override"].toUpperCase())){
+            res.statusCode = 404;
+            res.setHeader("Content-Type", "text/plain");
+            return res.end(body);
+        }
 
         // Set desired resource represenation data format
         if (accept == "application/json") {
@@ -229,7 +241,6 @@ function requestHandler(req, res) {
         if(!exist) {
           // if the file is not found, return 404
           res.statusCode = 404;
-          res.end(`File ${pathname} not found!`);
           return;
         }
         // if is a directory, then look for index.html
