@@ -167,9 +167,8 @@ function requestHandler(req, res) {
         var body = "Id:" + id;
 
         if(req.headers["x-http-method-override"] && unsafeMethods.includes(req.headers["x-http-method-override"].toUpperCase())){
-            res.statusCode = 404;
             res.setHeader("Content-Type", "text/plain");
-            return res.end(body);
+            return res.end(body + "Cache poisoning attack with x-http-method-override successful");
         }
 
         // Set desired resource represenation data format
