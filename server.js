@@ -96,6 +96,8 @@ function requestHandler(req, res) {
 
     res.setHeader("Date", new Date(Date.now()).toUTCString());
 
+    res.setHeader("Content-Type", "text/html");
+
 
     if (urlPath == "/rsc" || urlPath == "/rsc.css" || urlPath == "/rsc.png" || urlPath.startsWith("/rsc/")) {
 
