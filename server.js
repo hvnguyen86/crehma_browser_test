@@ -147,9 +147,14 @@ function requestHandler(req, res) {
             
             return res.end("");
         } else {
-            res.setHeader("Content-Type",accept)
-            res.setHeader("Content-Length",)
-            res.setHeader("Signature",crehma.signResponse(res, "", req.method, req.url));
+            var etag = req.headers["if-none-match"].replace(/\"/g, "");
+            var tvpWithoutTvp = crehma.getTbsWithoutTvp(etag);
+            if(tvpWithoutTvp){
+                res.setHeader("Signature", crehma.signTbsWithoutTvp(tvpWithoutTvp));
+                res.statusCode = 304;
+                return res.end("");
+            }
+            
         }
 
         if (req.headers["if-modified-since"]) {

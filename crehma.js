@@ -61,6 +61,7 @@ function signResponse(response, body, method, uri){
 	var sv =  base64url.fromBase64(crypto.createHmac("sha256", key).update(tbs).digest("base64"));
 	var bodyETag = sv.substring(0,5);
 	bodyHashTable[bodyETag] = tbsWithoutTvp;
+	response.setHeader("ETag",bodyETag);
 	signatureHeaderValue = util.format(signatureHeaderTemplate,sig,hash,kid,tvp,"null",sv);
 	
 	return signatureHeaderValue;
@@ -125,9 +126,11 @@ function verifyRequest(request){
 	}
 }
 
-function getTbs(etag){
+function getTbsWithoutTvp(etag){
 	return bodyHashTable[etag];
 }
 
 exports.signResponse = signResponse;
 exports.verifyRequest = verifyRequest;
+exports.getTbsWithoutTvp = getTbsWithoutTvp;
+exports.signTbsWithoutTvp = signTbsWithoutTvp;
