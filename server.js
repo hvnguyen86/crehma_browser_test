@@ -223,7 +223,7 @@ function requestHandler(req, res) {
         if (req.headers["accept-language"]) {
             res.setHeader("Content-Language", req.headers["accept-language"]);
         }
-
+        res.setHeader("Content-Length",body.length);
         res.setHeader("Signature",crehma.signResponse(res, body, req.method, req.url));
         //var etag = crypto.createHash('sha256').update(body).digest('base64').str.substring(0, 5);
         //res.setHeader("ETag",etag);
