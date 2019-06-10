@@ -233,7 +233,7 @@ function requestHandler(req, res) {
         if (req.headers["accept-language"]) {
             res.setHeader("Content-Language", req.headers["accept-language"]);
         }
-        if(req.headers["no-signature"] == "true");{
+        if(req.headers["no-signature"] == "0"){
             res.setHeader("Content-Length",body.length);
             res.setHeader("Signature",crehma.signResponse(res, body, req.method, host+req.url));
         }
@@ -248,13 +248,13 @@ function requestHandler(req, res) {
     else if(urlPath == "/"){
         var body  = fs.readFileSync("index.html");
         res.setHeader("Cache-Control","no-store");
-        // if(req.headers["no-signature"] == "true");{
-        //     res.setHeader("Content-Length",body.length);
-        //     res.setHeader("Content-Type","text/html");
+        if(req.headers["no-signature"] == "0"){
+            res.setHeader("Content-Length",body.length);
+            res.setHeader("Content-Type","text/html");
             
-        //     var signatureHeader = crehma.signResponse(res,body,req.method,host+req.url);
-        //     res.setHeader("Signature",signatureHeader);
-        // }
+            var signatureHeader = crehma.signResponse(res,body,req.method,host+req.url);
+            res.setHeader("Signature",signatureHeader);
+        }
         return res.end(body);
     } else if(urlPath == "/testpage"){
         var body  = fs.readFileSync("testPage.html");
