@@ -248,7 +248,7 @@ function requestHandler(req, res) {
         res.setHeader("Content-Length",body.length);
         res.setHeader("Content-Type","text/html");
         
-        var signatureHeader = crehma.signResponse(res,body,req.method,req.url);
+        var signatureHeader = crehma.signResponse(res,body,req.method,host+req.url);
         res.setHeader("Signature",signatureHeader);
         return res.end(body);
     } else if(urlPath == "/testpage"){
