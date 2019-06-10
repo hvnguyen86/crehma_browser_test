@@ -151,6 +151,7 @@ function requestHandler(req, res) {
             var tvpWithoutTvp = crehma.getTbsWithoutTvp(etag);
             if(tvpWithoutTvp){
                 res.setHeader("Signature", crehma.signTbsWithoutTvp(tvpWithoutTvp));
+                res.setHeader("ETag",etag);
                 res.statusCode = 304;
                 return res.end("");
             }
