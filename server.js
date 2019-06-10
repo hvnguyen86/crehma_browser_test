@@ -209,6 +209,7 @@ function requestHandler(req, res) {
             res.setHeader("Content-Type", accept);
             var bodyJson = {};
             bodyJson["Id"] = id;
+            bodyJson["BigValue"] = crypto.randomBytes(8192).toString('hex');
             body = JSON.stringify(bodyJson);
         } else if (accept == "application/xml") {
             res.setHeader("Content-Type", accept);
