@@ -34,6 +34,8 @@ var tbsResponseHeaders = [ "Content-Type",
 var bodyHashTable = [];
 
 function signResponse(response, body, method, uri){
+	var bodyETag = crypto.randomBytes(8).toString('hex');
+	response.setHeader("ETag",bodyETag);
 	var bodyHash = base64url.fromBase64(crypto.createHash('sha256').update(body).digest('base64'));
 	var tvp = new Date().toISOString();
 	var tbs = tvp + "\n";
@@ -59,9 +61,9 @@ function signResponse(response, body, method, uri){
 	console.log("****");
 
 	var sv =  base64url.fromBase64(crypto.createHmac("sha256", key).update(tbs).digest("base64"));
-	var bodyETag = sv.substring(0,5);
+	
 	bodyHashTable[bodyETag] = tbsWithoutTvp;
-	response.setHeader("ETag",bodyETag);
+	
 	signatureHeaderValue = util.format(signatureHeaderTemplate,sig,hash,kid,tvp,"null",sv);
 	
 	return signatureHeaderValue;
