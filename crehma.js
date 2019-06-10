@@ -37,26 +37,48 @@ function signResponse(response, body, method, uri){
 	var bodyHash = base64url.fromBase64(crypto.createHash('sha256').update(body).digest('base64'));
 	var tvp = new Date().toISOString();
 	var tbs = tvp + "\n";
-	tbs += method + "\n";
-	tbs += uri + "\n";
-	tbs += "HTTP/1.1" + "\n";
-	tbs += response.statusCode + "\n";
+	var tbsWithoutTvp = "";
+	tbsWithoutTvp += method + "\n";
+	tbsWithoutTvp += uri + "\n";
+	tbsWithoutTvp += "HTTP/1.1" + "\n";
+	tbsWithoutTvp += response.statusCode + "\n";
 	for (var i = 0; i < tbsResponseHeaders.length; i++) {
 		if(response.getHeader(tbsResponseHeaders[i])){
-			tbs += response.getHeader(tbsResponseHeaders[i]) + "\n";
+			tbsWithoutTvp += response.getHeader(tbsResponseHeaders[i]) + "\n";
 		} else {
-			tbs += "\n"
+			tbsWithoutTvp += "\n"
 		}
 		
 	};
-	tbs +=bodyHash;
+
+	tbsWithoutTvp +=bodyHash;
+	tbs +=tbsWithoutTvp;
 	
 	console.log("****");
 	console.log(tbs);
 	console.log("****");
-	
-	var sv =  base64url.fromBase64(crypto.createHmac("sha256", key).update(tbs).digest("base64"));
 
+	var sv =  base64url.fromBase64(crypto.createHmac("sha256", key).update(tbs).digest("base64"));
+	var bodyETag = sv.substring(0,5);
+	bodyHashTable[bodyETag] = tbsWithoutTvp;
+	signatureHeaderValue = util.format(signatureHeaderTemplate,sig,hash,kid,tvp,"null",sv);
+	
+	return signatureHeaderValue;
+
+}
+
+function signTbsWithoutTvp(tbsWithoutTvp){
+
+	var tvp = new Date().toISOString();
+	var tbs = tvp + "\n";
+	tbs +=tbsWithoutTvp;
+	
+	console.log("****");
+	console.log(tbs);
+	console.log("****");
+
+	var sv =  base64url.fromBase64(crypto.createHmac("sha256", key).update(tbs).digest("base64"));
+	
 	signatureHeaderValue = util.format(signatureHeaderTemplate,sig,hash,kid,tvp,"null",sv);
 	
 	return signatureHeaderValue;
@@ -101,6 +123,10 @@ function verifyRequest(request){
 	} else {
 		return false;
 	}
+}
+
+function getTbs(etag){
+	return bodyHashTable[etag];
 }
 
 exports.signResponse = signResponse;

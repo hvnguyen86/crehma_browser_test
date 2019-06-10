@@ -88,7 +88,7 @@ function requestHandler(req, res) {
             res.setHeader("X-Response-Splitting-Url",decodeURI(query["res"]));
     }
 
-    res.setHeader("X-Client-IP", req.connection.remoteAddress)
+    //res.setHeader("X-Client-IP", req.connection.remoteAddress)
 
     if (req.headers["x-id"]) {
         id = req.headers["x-id"];
@@ -105,11 +105,11 @@ function requestHandler(req, res) {
 
 
     // For XHR
-    res.setHeader("Access-Control-Allow-Origin", "*");
-    res.setHeader("Access-Control-Allow-Headers", "X-Id, X-Response, Cache-Control, Set-Cookie");
-    res.setHeader("Access-Control-Expose-Headers", "X-Id, Id, Content-Length, Content-Type, Warning, Cache-Control, Set-Cookie")
-    res.setHeader("Access-Control-Allow-Credentials", "true");
-    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PATCH, PUT");
+    // res.setHeader("Access-Control-Allow-Origin", "*");
+    // res.setHeader("Access-Control-Allow-Headers", "X-Id, X-Response, Cache-Control, Set-Cookie");
+    // res.setHeader("Access-Control-Expose-Headers", "X-Id, Id, Content-Length, Content-Type, Warning, Cache-Control, Set-Cookie")
+    // res.setHeader("Access-Control-Allow-Credentials", "true");
+    // res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PATCH, PUT");
 
     res.setHeader("Date", new Date(Date.now()).toUTCString());
 
@@ -118,7 +118,7 @@ function requestHandler(req, res) {
 
     if (urlPath == "/rsc" || urlPath == "/rsc.css" || urlPath == "/rsc.png" || urlPath.startsWith("/rsc/")) {
 
-        res.setHeader("X-Forwarded-Header", JSON.stringify(req.headers))
+        //res.setHeader("X-Forwarded-Header", JSON.stringify(req.headers))
 
         if (queryParamsResponse["st"]) {
 
@@ -144,10 +144,12 @@ function requestHandler(req, res) {
 
         if (req.headers["if-none-match"] && req.headers["if-none-match"].replace(/\"/g, "") == "123") {
             res.statusCode = 304;
+            
+            return res.end("");
+        } else {
             res.setHeader("Content-Type",accept)
             res.setHeader("Content-Length",)
             res.setHeader("Signature",crehma.signResponse(res, "", req.method, req.url));
-            return res.end("");
         }
 
         if (req.headers["if-modified-since"]) {
