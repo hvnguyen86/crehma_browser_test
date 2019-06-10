@@ -146,7 +146,7 @@ function requestHandler(req, res) {
             res.statusCode = 304;
             
             return res.end("");
-        } else {
+        } else if(req.headers["if-none-match"]) {
             var etag = req.headers["if-none-match"].replace(/\"/g, "");
             var tvpWithoutTvp = crehma.getTbsWithoutTvp(etag);
             if(tvpWithoutTvp){
