@@ -76,7 +76,7 @@ function signTbsWithoutTvp(tbsWithoutTvp){
 	var tbs = tvp + "\n";
 	tbs +=tbsWithoutTvp;
 	
-	console.log("****");
+	console.log("****NotModified");
 	console.log(tbs);
 	console.log("****");
 
