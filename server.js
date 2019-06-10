@@ -101,6 +101,7 @@ function requestHandler(req, res) {
     if(id == ""){
         id = crypto.randomBytes(8).toString('hex');
         res.setHeader("X-Id", id);
+        res.setHeader("Id", id);
     }
 
 
