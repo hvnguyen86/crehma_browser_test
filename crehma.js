@@ -51,6 +51,10 @@ function signResponse(response, body, method, uri){
 	};
 	tbs +=bodyHash;
 	
+	console.log("****");
+	console.log(tbs);
+	console.log("****");
+	
 	var sv =  base64url.fromBase64(crypto.createHmac("sha256", key).update(tbs).digest("base64"));
 
 	signatureHeaderValue = util.format(signatureHeaderTemplate,sig,hash,kid,tvp,"null",sv);
@@ -89,9 +93,6 @@ function verifyRequest(request){
 	};
 	tbs +=bodyHash;
 
-	console.log("****");
-	console.log(tbs);
-	console.log("****");
 
 	var svOfRequest =  base64url.fromBase64(crypto.createHmac("sha256", key).update(tbs).digest("base64"));
 	
