@@ -4,6 +4,7 @@ const crypto = require('crypto');
 const fs = require('fs');
 const querystring = require('querystring');
 const path = require('path');
+const crehma = require('./crehma.js')
 
 var headerFields = {
     "cc": "Cache-Control",
@@ -13,8 +14,10 @@ var headerFields = {
     "va": "Vary"
 };
 
-var unsafeMethods = ["POST","DELETE","PATCH","PUT"];
 
+
+var unsafeMethods = ["POST","DELETE","PATCH","PUT"];
+var host = "139.6.102.38:3000"
 var httpServer = http.createServer(requestHandler);
 var lastModified;
 var timeStamps = {};
@@ -37,7 +40,20 @@ function requestHandler(req, res) {
         console.log("-----")
     });
 
-    console.log(req.headers["accept-language"]);
+    req.headers["host"] = host;
+
+    if(req.headers["signature"]){
+        if(!crehma.verifyRequest(req)){
+            res.statusCode = 403;
+            var body = "Invalid Signature";
+            res.setHeader("Content-Type","text/plain");
+            res.setHeader("Content-Length",body.length)
+            res.setHeader("Cache-Control","no-store");
+            res.setHeader("Signature",crehma.signResponse(res, body, req.method, req.url));
+            return res.end(body);
+        }
+    }
+    
 
     var responseString = req.headers["x-response"] ? req.headers["x-response"] : "";
 
@@ -87,6 +103,7 @@ function requestHandler(req, res) {
         res.setHeader("X-Id", id);
     }
 
+
     // For XHR
     res.setHeader("Access-Control-Allow-Origin", "*");
     res.setHeader("Access-Control-Allow-Headers", "X-Id, X-Response, Cache-Control, Set-Cookie");
@@ -127,13 +144,16 @@ function requestHandler(req, res) {
 
         if (req.headers["if-none-match"] && req.headers["if-none-match"].replace(/\"/g, "") == "123") {
             res.statusCode = 304;
-
+            res.setHeader("Content-Type",accept)
+            res.setHeader("Content-Length",)
+            res.setHeader("Signature",crehma.signResponse(res, "", req.method, req.url));
             return res.end("");
         }
 
         if (req.headers["if-modified-since"]) {
             if (req.headers["if-modified-since"]) {
                 res.statusCode = 304;
+                res.setHeader("Signature",crehma.signResponse(res, "", req.method, req.url));
                 return res.end("");
             }
         }
@@ -204,13 +224,22 @@ function requestHandler(req, res) {
             res.setHeader("Content-Language", req.headers["accept-language"]);
         }
 
+        res.setHeader("Signature",crehma.signResponse(res, body, req.method, req.url));
+        //var etag = crypto.createHash('sha256').update(body).digest('base64').str.substring(0, 5);
+        //res.setHeader("ETag",etag);
+
         return res.end(body);
     }
 
     // test page for pilot test
     else if(urlPath == "/"){
         var body  = fs.readFileSync("index.html");
-
+        res.setHeader("Cache-Control","no-store");
+        res.setHeader("Content-Length",body.length);
+        res.setHeader("Content-Type","text/html");
+        
+        var signatureHeader = crehma.signResponse(res,body,req.method,req.url);
+        res.setHeader("Signature",signatureHeader);
         return res.end(body);
     } else if(urlPath == "/testpage"){
         var body  = fs.readFileSync("testPage.html");
