@@ -18,7 +18,7 @@ var headerFields = {
 
 var unsafeMethods = ["POST","DELETE","PATCH","PUT"];
 var host = "139.6.102.29";
-//host = "cachetest.hoaiviet.de";
+host = "cachetest.hoaiviet.de";
 //host = "139.6.102.38:3000";
 var httpServer = http.createServer(requestHandler);
 var lastModified;
@@ -108,9 +108,9 @@ function requestHandler(req, res) {
 
 
     // For XHR
-    // res.setHeader("Access-Control-Allow-Origin", "*");
-    // res.setHeader("Access-Control-Allow-Headers", "X-Id, X-Response, Cache-Control, Set-Cookie");
-    // res.setHeader("Access-Control-Expose-Headers", "X-Id, Id, Content-Length, Content-Type, Warning, Cache-Control, Set-Cookie")
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    //res.setHeader("Access-Control-Allow-Headers", "X-Id, X-Response, Cache-Control, Set-Cookie");
+    res.setHeader("Access-Control-Expose-Headers", "X-Id, Id, Warning, ETag, Tranfer-Encoding")
     // res.setHeader("Access-Control-Allow-Credentials", "true");
     // res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PATCH, PUT");
 
@@ -118,10 +118,14 @@ function requestHandler(req, res) {
 
     res.setHeader("Content-Type", "text/html");
 
+    var additionalBodyLength = 8;
+
 
     if (urlPath == "/rsc" || urlPath == "/rsc.css" || urlPath == "/rsc.png" || urlPath.startsWith("/rsc/")) {
 
         //res.setHeader("X-Forwarded-Header", JSON.stringify(req.headers))
+
+
 
         if (queryParamsResponse["st"]) {
 
@@ -190,9 +194,11 @@ function requestHandler(req, res) {
                 res.setHeader("Set-Cookie", "sid=" + rand_string(16));
             } else if (key == "xsf") {
                 res.setHeader("X-Store-Forbidden", "This header field is forbidden to store");
+            } else if (key == "acl"){
+                additionalBodyLength = queryParamsResponse[key];
             } else if (headerFields[key]) {
                 res.setHeader(headerFields[key], queryParamsResponse[key]);
-            }
+            } 
         }
 
         
@@ -209,7 +215,7 @@ function requestHandler(req, res) {
             res.setHeader("Content-Type", accept);
             var bodyJson = {};
             bodyJson["Id"] = id;
-            bodyJson["BigValue"] = crypto.randomBytes(8192).toString('hex');
+            bodyJson["BigValue"] = crypto.randomBytes(additionalBodyLength).toString('hex');
             body = JSON.stringify(bodyJson);
         } else if (accept == "application/xml") {
             res.setHeader("Content-Type", accept);
@@ -235,7 +241,7 @@ function requestHandler(req, res) {
         if (req.headers["accept-language"]) {
             res.setHeader("Content-Language", req.headers["accept-language"]);
         }
-        if(req.headers["no-signature"] == "0"){
+        if(req.headers["create-signature"] == "true"){
             res.setHeader("Content-Length",body.length);
             res.setHeader("Signature",crehma.signResponse(res, body, req.method, host+req.url));
         }
@@ -260,6 +266,10 @@ function requestHandler(req, res) {
         return res.end(body);
     } else if(urlPath == "/testpage"){
         var body  = fs.readFileSync("testPage.html");
+
+        return res.end(body);
+    } else if(urlPath == "/crehma") {
+        var body  = fs.readFileSync("crehma.html");
 
         return res.end(body);
     } else {
