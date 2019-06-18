@@ -112,7 +112,7 @@ function requestHandler(req, res) {
     //res.setHeader("Access-Control-Allow-Headers", "X-Id, X-Response, Cache-Control, Set-Cookie");
     res.setHeader("Access-Control-Expose-Headers", "X-Id, Id, Warning, ETag, Tranfer-Encoding")
     // res.setHeader("Access-Control-Allow-Credentials", "true");
-    // res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PATCH, PUT");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PATCH, PUT");
 
     res.setHeader("Date", new Date(Date.now()).toUTCString());
 
