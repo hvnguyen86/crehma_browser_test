@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<title></title>
+	<link rel="stylesheet" href="">
+</head>
+<body>
+	<label for="">Valid Tests</label>
+	<input type="text" value="1000" id="numberOfValidTest">
+	<br>
+	<label for="">Invalid Tests</label>
+	<input type="text" value="0" id="numberOfInvalidTest">
+	<br>
+	<label for="">X-Response</label>
+	<input type="text" value="cc:max-age=3600" id="x_response">
+	<br>
+	<label for="">Enable Signature Response</label>
+	<input type="text" value="true" id="createSignedResponse">
+	<br>
+	<label for="">Enable Request Response</label>
+	<input type="text" value="true" id="createSignedRequest">
+<br>
+	<button id="start" onclick="startTest()">Start Test</button>
+	<br>
+	<br>
+	<label for="">Output</label>
+	<br>
+	<textarea name="" id="output" cols="30" rows="10"></textarea>
+	<script type="text/javascript" src="/public/javascript/sjcl.js"></script>
+	<script>
+
+
+
+		var base64Key = "fJW7ebII2E4RU3fD4BjixIDnV++0mq8LUY5TMx2C/g5nRDDies4AFLZ939sU1uoMH+uey1xUMKVSFCd+VNXg+4yOS1M/DtM+9ObW108iNmlXZQsKgXLkRLrBkZ78y2r8Mml3WXe14ktXjCjhRXTx5lBsTKMEcBTxepe1aQ+0hLNOUDhsUKr31t9fS5/9nAQC7s9sPln54Oic1pnDOIfnBEku/vPl3zQCMtU2eRk9v+AfschSUGOvLV6Ctg0cGuSi/h8oKZuUYXrjoehUo1gBvZLVBpcCxZt1/ySGTInLic3QbfZwlT5sJKrYvfHXjANOEIM7JZMaSnfMdK2R9OJJpw=="
+
+  		var kid = "jREHMAKey";
+		var sig = "HMAC/SHA256";
+		var hash = "SHA256";
+		
+		var verifiedResponseSignatures = [];
+		//var arrayBufferKey = base64StringToArrayBuffer(base64Key);
+		//var hmac = new sjcl.misc.hmac(base64StringToArrayBuffer(base64Key));
+		var hmac = new  sjcl.misc.hmac(sjcl.codec.base64.toBits(base64Key));
+		var sha256 = new sjcl.hash.sha256();
+
+
+		var tbsRequestHeaders = [
+			"Host",
+			"Accept",
+			"Content-Type",
+			"Transfer-Encoding",
+			"Content-Length"
+		].sort()
+
+
+		var host = "cachetest.hoaiviet.de"
+		var accept = "application/json"
+
+
+		var headers = [
+			accept,
+			"",
+			"",
+			host,
+			""
+		]
+
+		var tbsResponseHeaders = [ "Content-Type",
+			"Content-Length",
+			"Transfer-Encoding",
+			"Cache-Control",
+			"Expires",
+			"ETag",
+			"Last-Modified"
+		].sort()
+
+		function startTest(){
+			var numberOfValidTest = parseInt(document.getElementById("numberOfValidTest").value);
+			var numberOfInvalidTest = parseInt(document.getElementById("numberOfInvalidTest").value);
+			var x_response = document.getElementById("x_response").value;
+			var createSignedResponse = document.getElementById("createSignedResponse").value;
+			var createSignedRequest = document.getElementById("createSignedRequest").value;
+			var output = document.getElementById("output");
+			var numberOfTotalTest = numberOfValidTest - numberOfInvalidTest;
+			var id = new Date().getTime();
+			var path = "/rsc/"+id
+			var uri = "http://cachetest.hoaiviet.de"+path
+			var totalNumberOfTimes = 0;
+			var delta = 0;
+			for (var i = 0; i < numberOfTotalTest; i++) {
+				//console.log(i);
+				if(i>=numberOfInvalidTest){
+					delta = createRequest(uri,path,x_response,createSignedResponse,createSignedRequest);
+
+					totalNumberOfTimes += delta;
+					console.log(delta);
+					output.value += delta + "\n";
+				} else {
+					createRequest(path,x_response,createSignedResponse,createSignedRequest);
+				}
+				
+			}
+			
+			console.log(totalNumberOfTimes/numberOfValidTest)
+		}
+
+
+		function createRequest(uri,path,x_response,createSignedResponse,createSignedRequest){
+			var hashOfEmptyBody = "47DEQpj8HBSa-_TImW-5JCeuQeRkm5NMpJWZG3hSuFU"
+
+			var request = new XMLHttpRequest();
+			
+			request.open("GET",uri,false);
+			request.setRequestHeader("Accept",accept);
+			request.setRequestHeader("Create-Signature",createSignedResponse);
+			request.setRequestHeader("X-Response",x_response)
+
+			var start = new Date().getTime();
+			if(createSignedResponse == "true"){
+				request.setRequestHeader("Signature",generateSignatureHeaderValue("GET",path,hashOfEmptyBody,headers));
+			}
+			
+			request.send();
+
+			
+			if(createSignedResponse == "true"){
+				var cachekey = host+path;
+				var signatureHeaderOfResponse = request.getResponseHeader("Signature");
+				if(!verifyResponse(signatureHeaderOfResponse,request, cachekey, "GET")){
+					throw new Error('Exception message');
+				}
+			}
+			var end = new Date().getTime();
+
+			return end - start;
+			//console.log(request);
+			
+		}
+		
+  				
+		//console.log(sha256)
+		//.log(base64EncodeUrl(sjcl.codec.base64.fromBits(hmac.encrypt("Hello World"))));
+
+		
+		//console.log(verifyResponse(signatureHeaderOfResponse,request, cachekey, "GET"));
+
+		function generateSignatureHeaderValue(method, uri, bodyHash, headers){
+			var tvp = new Date().toISOString();
+			var tbs = tvp + "\n";
+			tbs+= method + "\n";
+			tbs+= uri + "\n";
+			tbs+= "HTTP/1.1\n" ;
+			for (var i = 0; i < headers.length; i++) {
+				tbs += headers[i] + "\n";
+			};
+			tbs+=bodyHash;
+
+			// console.log(tbs);
+			var sv = base64EncodeUrl(sjcl.codec.base64.fromBits(hmac.encrypt(tbs)))
+			return "sig=HMAC/SHA256,hash=SHA256,kid=jREHMAKey,tvp="+tvp+",addHeaders=null,sv="+sv;
+		}
+
+		function verifyResponse(signatureHeader, request, cachekey, method){
+			var tvp, sv;
+			var signatureMetaDataArray = signatureHeader.split(",");
+			for (var i = 0; i < signatureMetaDataArray.length; i++) {
+				var param = signatureMetaDataArray[i].split("=");
+				if(param[0] == "tvp"){
+					tvp = param[1];
+
+				} else if(param[0] == "sv"){
+					sv = param[1];
+				}
+			};
+
+			var tbs = tvp + "\n";
+			tbs += method + "\n";
+			tbs += cachekey + "\n";
+			tbs += "HTTP/1.1" + "\n";
+			tbs += request.status + "\n";
+
+			for (var i = 0; i < tbsResponseHeaders.length; i++) {
+				tbs += request.getResponseHeader(tbsResponseHeaders[i]) ? request.getResponseHeader(tbsResponseHeaders[i]) + "\n" : "\n"
+				
+			};
+
+			tbs += base64EncodeUrl(sjcl.codec.base64.fromBits(sjcl.hash.sha256.hash(request.responseText)));
+			//console.log(tbs);
+			var calcSv = base64EncodeUrl(sjcl.codec.base64.fromBits(hmac.encrypt(tbs)));
+
+			if(calcSv == sv){
+				if(verifiedResponseSignatures.includes(sv)){
+					var cacheControlHeader = request.getResponseHeader("Cache-Control");
+					cacheControlHeaderParams = cacheControlHeader.split(",");
+					maxAge = 0;
+					for (var i = 0; i < cacheControlHeaderParams.length; i++) {
+						if(cacheControlHeaderParams[i].startsWith("max-age="))
+							maxAge = cacheControlHeaderParams[i].split("=")[1]
+					};
+					if(!verifiySignatureFreshness(maxAge,tvp)){
+						return false;
+					}
+				}
+				verifiedResponseSignatures.push(sv);
+				return true;
+			} else {
+				return false;
+			}
+			
+		}
+
+		function verifiySignatureFreshness(maxAge,tvp){
+			var tvpDate = new Date(tvp);
+			var delta = 5000;
+			var signatureExpirationDate = tvpDate.getTime() + delta + maxAge * 1000;
+			var now = new Date().getTime();
+
+			if(now < signatureExpirationDate){
+				return true;
+			}
+		}
+
+
+		
+		function base64EncodeUrl(str){
+    		return str.replace(/\+/g, '-').replace(/\//g, '_').replace(/\=+$/, '');
+		}
+
+
+
+		
+		function base64StringToArrayBuffer(b64str) {
+	      var byteStr = atob(b64str)
+	      var bytes = new Uint8Array(byteStr.length)
+	      for (var i = 0; i < byteStr.length; i++) {
+	        bytes[i] = byteStr.charCodeAt(i)
+	      }
+	      return bytes.buffer
+	    }
+
+	    function arrayBufferToBase64(buffer) {
+		    let binary = '';
+		    let bytes = new Uint8Array(buffer);
+		    let len = bytes.byteLength;
+		    for (let i = 0; i < len; i++) {
+		        binary += String.fromCharCode(bytes[i]);
+		    }
+		    return window.btoa(binary);
+		}
+
+	</script>
+</body>
+</html>
