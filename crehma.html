@@ -55,7 +55,8 @@
 		].sort()
 
 
-		var host = "cachetest.hoaiviet.de"
+		var host = "cachetest.hoaiviet.de";
+		host = "ec2-52-59-249-33.eu-central-1.compute.amazonaws.com:3000"
 		var accept = "application/json"
 
 
@@ -86,7 +87,7 @@
 			var numberOfTotalTest = numberOfValidTest - numberOfInvalidTest;
 			var id = new Date().getTime();
 			var path = "/rsc/"+id
-			var uri = "http://cachetest.hoaiviet.de"+path
+			var uri = "http://"+host+path
 			var totalNumberOfTimes = 0;
 			var delta = 0;
 			for (var i = 0; i < numberOfTotalTest; i++) {
