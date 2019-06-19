@@ -34,8 +34,11 @@ var tbsResponseHeaders = [ "Content-Type",
 var bodyHashTable = [];
 
 function signResponse(response, body, method, uri){
-	var bodyETag = crypto.randomBytes(8).toString('hex');
-	response.setHeader("ETag",bodyETag);
+	if(response.statusCode != 304){
+		var bodyETag = crypto.randomBytes(8).toString('hex');
+		response.setHeader("ETag",bodyETag);
+	}
+	
 	var bodyHash = base64url.fromBase64(crypto.createHash('sha256').update(body).digest('base64'));
 	var tvp = new Date().toISOString();
 	var tbs = tvp + "\n";
