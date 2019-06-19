@@ -19,6 +19,7 @@ var headerFields = {
 var unsafeMethods = ["POST","DELETE","PATCH","PUT"];
 var host = "139.6.102.29";
 host = "cachetest.hoaiviet.de";
+host = "ec2-52-59-249-33.eu-central-1.compute.amazonaws.com:3000"
 //host = "139.6.102.38:3000";
 var httpServer = http.createServer(requestHandler);
 var lastModified;
