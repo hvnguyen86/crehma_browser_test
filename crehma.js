@@ -49,7 +49,7 @@ function signResponse(response, body, method, uri){
 	tbsWithoutTvp += "HTTP/1.1" + "\n";
 	tbsWithoutTvp += response.statusCode + "\n";
 	for (var i = 0; i < tbsResponseHeaders.length; i++) {
-		console.log(tbsResponseHeaders[i])
+		
 		if(response.getHeader(tbsResponseHeaders[i])){
 
 			tbsWithoutTvp += response.getHeader(tbsResponseHeaders[i]) + "\n";
