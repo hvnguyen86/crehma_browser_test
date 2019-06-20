@@ -120,7 +120,7 @@ function requestHandler(req, res) {
 
     res.setHeader("Content-Type", "text/html");
 
-    var additionalBodyLength = 8;
+    var additionalBodyLength = 100;
 
 
     if (urlPath == "/rsc" || urlPath == "/rsc.css" || urlPath == "/rsc.png" || urlPath.startsWith("/rsc/")) {
