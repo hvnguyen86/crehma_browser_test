@@ -20,7 +20,7 @@ var unsafeMethods = ["POST","DELETE","PATCH","PUT"];
 var host = "139.6.102.29";
 host = "cachetest.hoaiviet.de";
 host = "ec2-34-252-120-148.eu-west-1.compute.amazonaws.com";
-host = "ec2-34-241-245-90.eu-west-1.compute.amazonaws.com"
+host = "ec2-34-241-245-90.eu-west-1.compute.amazonaws.com";
 //host = "ec2-52-59-249-33.eu-central-1.compute.amazonaws.com:3000";
 //host = "139.6.102.38:3000";
 var httpServer = http.createServer(requestHandler);
@@ -121,7 +121,7 @@ function requestHandler(req, res) {
 
     res.setHeader("Content-Type", "text/html");
 
-    var additionalBodyLength = 100;
+    var additionalBodyLength = 500;
 
 
     if (urlPath == "/rsc" || urlPath == "/rsc.css" || urlPath == "/rsc.png" || urlPath.startsWith("/rsc/")) {
