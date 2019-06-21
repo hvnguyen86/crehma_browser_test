@@ -168,7 +168,9 @@ function requestHandler(req, res) {
                     return res.end("");
                 }
             } else {
+                res.statusCode = 304;
                 res.setHeader("ETag",etag);
+                return res.end("");
             }
             
         }
