@@ -191,6 +191,7 @@
 			
 		}
 
+		var ver_times = []
 		function startTest(){
 			var numberOfValidTest = parseInt(document.getElementById("numberOfValidTest").value);
 			var numberOfInvalidTest = parseInt(document.getElementById("numberOfInvalidTest").value);
@@ -210,6 +211,7 @@
 				if(i>=numberOfInvalidTest){
 					results = createRequest(uri,path,x_response,createSignedResponse,createSignedRequest);
 					delta = results[0]
+					ver_times.push(results[2])
 					totalNumberOfTimes += delta;
 					//console.log(delta);
 					delta_output.value += delta + "\n";
