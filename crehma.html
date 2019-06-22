@@ -112,7 +112,7 @@
 			var createSignedRequest = document.getElementById("createSignedRequest").value;
 
 			var numberOfTotalTest = numberOfValidTest - numberOfInvalidTest;
-			var id = new Date().getTime();
+			
 			
 			var totalNumberOfTimes = 0;
 
@@ -131,6 +131,7 @@
 				var content_length = 0;
 				var x_response_temp = x_response + ";abl:"+abl
 				var path = "/rsc/"+id
+				var id = new Date().getTime();
 				var uri = "http://"+host+path
 				
 				for (var i = 0; i < numberOfTotalTest; i++) {
