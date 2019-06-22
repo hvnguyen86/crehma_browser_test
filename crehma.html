@@ -273,7 +273,7 @@
 			};
 			tbs+=bodyHash;
 
-			// console.log(tbs);
+			console.log(tbs);
 			var sv = base64EncodeUrl(sjcl.codec.base64.fromBits(hmac.encrypt(tbs)))
 			return "sig=HMAC/SHA256,hash=SHA256,kid=jREHMAKey,tvp="+tvp+",addHeaders=null,sv="+sv;
 		}
