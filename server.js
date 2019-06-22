@@ -45,7 +45,13 @@ function requestHandler(req, res) {
         console.log("-----")
     });
 
-    req.headers["host"] = host;
+    if(req.headers["fake-host"]){
+        host = req.headers["fake-host"];
+        req.headers["host"] = req.headers["fake-host"];
+    } else {
+        req.headers["host"] = host;
+    }
+    
 
     if(req.headers["signature"]){
         if(!crehma.verifyRequest(req)){

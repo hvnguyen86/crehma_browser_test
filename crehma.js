@@ -49,7 +49,7 @@ function signResponse(response, body, method, uri){
 	tbsWithoutTvp += "HTTP/1.1" + "\n";
 	tbsWithoutTvp += response.statusCode + "\n";
 	for (var i = 0; i < tbsResponseHeaders.length; i++) {
-		
+
 		if(response.getHeader(tbsResponseHeaders[i])){
 
 			tbsWithoutTvp += response.getHeader(tbsResponseHeaders[i]) + "\n";
@@ -62,9 +62,9 @@ function signResponse(response, body, method, uri){
 	tbsWithoutTvp +=bodyHash;
 	tbs +=tbsWithoutTvp;
 	
-	console.log("****");
+	console.log("**RES**");
 	console.log(tbs);
-	console.log("****");
+	console.log("**RES**");
 
 	var sv =  base64url.fromBase64(crypto.createHmac("sha256", key).update(tbs).digest("base64"));
 	

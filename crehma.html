@@ -8,10 +8,19 @@
 </head>
 <body>
 	<label for="">Valid Tests</label>
-	<input type="text" value="1000" id="numberOfValidTest">
+	<input type="text" value="100" id="numberOfValidTest">
 	<br>
 	<label for="">Invalid Tests</label>
 	<input type="text" value="0" id="numberOfInvalidTest">
+	<br>
+	<label for="">Steps</label>
+	<input type="text" value="10" id="steps">
+	<br>
+	<label for="">StepSize</label>
+	<input type="text" value="1000000" id="stepSize">
+	<br>
+	<label for="">Start abl</label>
+	<input type="text" value="1000" id="abl">
 	<br>
 	<label for="">X-Response</label>
 	<input type="text" value="cc:max-age=3600" id="x_response">
@@ -24,10 +33,21 @@
 <br>
 	<button id="start" onclick="startTest()">Start Test</button>
 	<br>
+	<button id="sizeTest" onclick="startSizeTest()">Start Size Test</button>
 	<br>
-	<label for="">Output</label>
 	<br>
-	<textarea name="" id="output" cols="30" rows="10"></textarea>
+	<label for="">Delta Output</label>
+	<br>
+	<textarea name="" id="delta_output" cols="30" rows="10"></textarea>
+	<br>
+	<label for="">CSV Delta Output</label>
+	<br>
+	<textarea name="" id="csv_delta_output" cols="30" rows="10"></textarea>
+	<br>
+	<label for="">CSV Versig </label>
+	<br>
+	<textarea name="" id="csv_versig" cols="30" rows="10"></textarea>
+
 	<script type="text/javascript" src="/public/javascript/sjcl.js"></script>
 	<script>
 
@@ -55,8 +75,8 @@
 		].sort()
 
 
-		var host = "cachetest.hoaiviet.de";
-		host = "ec2-52-59-249-33.eu-central-1.compute.amazonaws.com:3000"
+		var host = location.host
+		//host = "ec2-52-59-249-33.eu-central-1.compute.amazonaws.com:3000"
 		var accept = "application/json"
 
 
@@ -76,6 +96,97 @@
 			"ETag",
 			"Last-Modified"
 		].sort()
+		var csv_array;
+		function startSizeTest(){
+			var numberOfValidTest = parseInt(document.getElementById("numberOfValidTest").value);
+			var numberOfInvalidTest = parseInt(document.getElementById("numberOfInvalidTest").value);
+			var steps = parseInt(document.getElementById("steps").value);
+			var stepSize = parseInt(parseInt(document.getElementById("stepSize").value));
+			var x_response = document.getElementById("x_response").value;
+			var abl = parseInt(document.getElementById("abl").value);
+			var delta_output = document.getElementById("delta_output");
+			var csv_delta_output = document.getElementById("csv_delta_output");
+			var csv_versig_output = document.getElementById("csv_versig");
+			var results = [];
+			var createSignedResponse = document.getElementById("createSignedResponse").value;
+			var createSignedRequest = document.getElementById("createSignedRequest").value;
+
+			var numberOfTotalTest = numberOfValidTest - numberOfInvalidTest;
+			var id = new Date().getTime();
+			var path = "/rsc/"+id
+			var uri = "http://"+host+path
+			var totalNumberOfTimes = 0;
+
+			delta_output.value = "";
+			csv_delta_output.value = "";
+			csv_versig_output.value = "";
+			csv_array = new Object();
+			var delta = 0;
+			var ver_times = []
+			var sig_times = []
+			var content_length_array = [];
+			
+
+			for (var j = 0; j < steps; j++) {
+				var times = [];
+				var content_length = 0;
+				var x_response_temp = x_response + ";abl:"+abl
+				
+				for (var i = 0; i < numberOfTotalTest; i++) {
+				//console.log(i);
+					if(i>=numberOfInvalidTest){
+						results = createRequest(uri,path,x_response_temp,createSignedResponse,createSignedRequest);
+						delta = results[0]
+						content_length = results[1];
+						ver = results[2]
+						signature_time = results[2];
+						times.push(delta)
+						ver_times.push(ver)
+						sig_times.push(signature_time);
+						content_length_array.push(content_length)
+						totalNumberOfTimes += delta;
+						//console.log(delta);
+						delta_output.value += delta + "\n";
+					} else {
+						createRequest(path,x_response_temp,createSignedResponse,createSignedRequest);
+					}
+					csv_array[content_length] = times
+					//console.log(typeof abl);
+					abl = parseInt(abl) + parseInt(stepSize)
+					
+				}
+			}
+
+			var csv_string = "";
+			var csv_ver_sig = "";
+			var csv_ver_line = "";
+			var csv_sig_line = "";
+			
+			for(var key in csv_array){
+				var times = csv_array[key]
+				csv_string += key + "\t"
+				csv_ver_line += key + "\t"
+				csv_sig_line += key + "\t"
+				for (var i = 0; i < times.length; i++) {
+					csv_string += times[i] + "\t";
+					csv_ver_line += ver_times[i] + "\t";
+				};
+
+				csv_string +="\n"
+				csv_ver_line+="\n"
+			}
+
+			csv_delta_output.value = csv_string
+
+			for (var i = 0; i < ver_times.length; i++) {
+				csv_ver_sig += content_length_array[i] + "\t" +  ver_times[i] + "\t" +sig_times[i] + "\n"
+			};
+
+			csv_versig_output.value = csv_ver_line;
+
+			
+			
+		}
 
 		function startTest(){
 			var numberOfValidTest = parseInt(document.getElementById("numberOfValidTest").value);
@@ -83,21 +194,22 @@
 			var x_response = document.getElementById("x_response").value;
 			var createSignedResponse = document.getElementById("createSignedResponse").value;
 			var createSignedRequest = document.getElementById("createSignedRequest").value;
-			var output = document.getElementById("output");
+			var delta_output = document.getElementById("delta_output");
 			var numberOfTotalTest = numberOfValidTest - numberOfInvalidTest;
 			var id = new Date().getTime();
 			var path = "/rsc/"+id
 			var uri = "http://"+host+path
 			var totalNumberOfTimes = 0;
 			var delta = 0;
+			var results = "";
 			for (var i = 0; i < numberOfTotalTest; i++) {
 				//console.log(i);
 				if(i>=numberOfInvalidTest){
-					delta = createRequest(uri,path,x_response,createSignedResponse,createSignedRequest);
-
+					results = createRequest(uri,path,x_response,createSignedResponse,createSignedRequest);
+					delta = results[0]
 					totalNumberOfTimes += delta;
 					//console.log(delta);
-					output.value += delta + "\n";
+					delta_output.value += delta + "\n";
 				} else {
 					createRequest(path,x_response,createSignedResponse,createSignedRequest);
 				}
@@ -118,36 +230,38 @@
 			request.setRequestHeader("Accept",accept);
 			request.setRequestHeader("Create-Signature",createSignedResponse);
 			request.setRequestHeader("X-Response",x_response)
+			request.setRequestHeader("Fake-Host",host);
 
 			var start = new Date().getTime();
+			var signature_time = 0;
 			if(createSignedResponse == "true"){
+				var signature_start = new Date().getTime();
 				request.setRequestHeader("Signature",generateSignatureHeaderValue("GET",path,hashOfEmptyBody,headers));
+				var signature_end = new Date().getTime();
+				signature_time = signature_end - signature_start;
 			}
 			
 			request.send();
 
-			
+			var ver = 0;
 			if(createSignedResponse == "true"){
+				var start_verification = new Date().getTime()
 				var cachekey = host+path;
 				var signatureHeaderOfResponse = request.getResponseHeader("Signature");
 				if(!verifyResponse(signatureHeaderOfResponse,request, cachekey, "GET")){
 					throw new Error('Exception message');
 				}
+				var end_verification = new Date().getTime()
+				ver = end_verification - start_verification;
 			}
 			var end = new Date().getTime();
-
-			return end - start;
+			var results = [end - start, request.getResponseHeader("Content-Length"),ver, signature_time]
+			return results;
 			//console.log(request);
 			
 		}
 		
-  				
-		//console.log(sha256)
-		//.log(base64EncodeUrl(sjcl.codec.base64.fromBits(hmac.encrypt("Hello World"))));
-
-		
-		//console.log(verifyResponse(signatureHeaderOfResponse,request, cachekey, "GET"));
-
+  	
 		function generateSignatureHeaderValue(method, uri, bodyHash, headers){
 			var tvp = new Date().toISOString();
 			var tbs = tvp + "\n";
