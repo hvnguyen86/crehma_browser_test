@@ -15,6 +15,11 @@ var headerFields = {
 };
 
 
+var privateKey = fs.readFileSync('MyKey.key').toString();
+var certificate = fs.readFileSync('MyCertificate.key').toString();
+
+var options = {key: privateKey, cert: certificate};
+
 
 var unsafeMethods = ["POST","DELETE","PATCH","PUT"];
 var host = "139.6.102.29";
@@ -23,7 +28,7 @@ host = "ec2-34-252-120-148.eu-west-1.compute.amazonaws.com";
 host = "ec2-63-32-99-121.eu-west-1.compute.amazonaws.com";
 //host = "ec2-52-59-249-33.eu-central-1.compute.amazonaws.com:3000";
 //host = "139.6.102.38:3000";
-var httpServer = http.createServer(requestHandler);
+var httpServer = http.createServer(options,requestHandler);
 var lastModified;
 var timeStamps = {};
 
