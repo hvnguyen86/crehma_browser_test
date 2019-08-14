@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<title></title>
+	<link rel="stylesheet" href="">
+</head>
+<body>
+	<label for="">Valid Tests</label>
+	<input type="text" value="100" id="numberOfValidTest">
+	<br>
+	<label for="">Invalid Tests</label>
+	<input type="text" value="0" id="numberOfInvalidTest">
+	<br>
+	<label for="">Steps</label>
+	<input type="text" value="10" id="steps">
+	<br>
+	<label for="">StepSize</label>
+	<input type="text" value="1000000" id="stepSize">
+	<br>
+	<label for="">Start abl</label>
+	<input type="text" value="1000" id="abl">
+	<br>
+	<label for="">X-Response</label>
+	<input type="text" value="cc:max-age=3600" id="x_response">
+	<br>
+	<label for="">Enable Signed Response</label>
+	<input type="text" value="true" id="createSignedResponse">
+	<br>
+	<label for="">Enable Signed Request</label>
+	<input type="text" value="true" id="createSignedRequest">
+<br>
+	<button id="start" onclick="startTest()">Start Test</button>
+	<br>
+	<button id="sizeTest" onclick="startSizeTest()">Start Size Test</button>
+	<br>
+	<br>
+	<label for="">Delta Output</label>
+	<br>
+	<textarea name="" id="delta_output" cols="30" rows="10"></textarea>
+	<br>
+	<label for="">CSV Delta Output</label>
+	<br>
+	<textarea name="" id="csv_delta_output" cols="30" rows="10"></textarea>
+	<br>
+	<label for="">CSV Versig </label>
+	<br>
+	<textarea name="" id="csv_versig" cols="30" rows="10"></textarea>
+
+	
+	<script>
+
+
+
+		var base64Key = "fJW7ebII2E4RU3fD4BjixIDnV++0mq8LUY5TMx2C/g5nRDDies4AFLZ939sU1uoMH+uey1xUMKVSFCd+VNXg+4yOS1M/DtM+9ObW108iNmlXZQsKgXLkRLrBkZ78y2r8Mml3WXe14ktXjCjhRXTx5lBsTKMEcBTxepe1aQ+0hLNOUDhsUKr31t9fS5/9nAQC7s9sPln54Oic1pnDOIfnBEku/vPl3zQCMtU2eRk9v+AfschSUGOvLV6Ctg0cGuSi/h8oKZuUYXrjoehUo1gBvZLVBpcCxZt1/ySGTInLic3QbfZwlT5sJKrYvfHXjANOEIM7JZMaSnfMdK2R9OJJpw=="
+
+  		var kid = "jREHMAKey";
+		var sig = "HMAC/SHA256";
+		var hash = "SHA256";
+		
+		var verifiedResponseSignatures = [];
+		//var arrayBufferKey = base64StringToArrayBuffer(base64Key);
+		//var hmac = new sjcl.misc.hmac(base64StringToArrayBuffer(base64Key));
+		
+
+
+		var tbsRequestHeaders = [
+			"Host",
+			"Accept",
+			"Content-Type",
+			"Transfer-Encoding",
+			"Content-Length"
+		].sort()
+
+
+		var host = location.host
+		//host = "ec2-52-59-249-33.eu-central-1.compute.amazonaws.com:3000"
+		var accept = "application/json"
+
+
+		var headers = [
+			accept,
+			"",
+			"",
+			host,
+			""
+		]
+
+		var tbsResponseHeaders = [ "Content-Type",
+			"Content-Length",
+			"Transfer-Encoding",
+			"Cache-Control",
+			"Expires",
+			"ETag",
+			"Last-Modified"
+		].sort()
+
+
+		var csv_array;
+
+
+		async function startSizeTest(){
+			var numberOfValidTest = parseInt(document.getElementById("numberOfValidTest").value);
+			var numberOfInvalidTest = parseInt(document.getElementById("numberOfInvalidTest").value);
+			var steps = parseInt(document.getElementById("steps").value);
+			var stepSize = parseInt(parseInt(document.getElementById("stepSize").value));
+			var x_response = document.getElementById("x_response").value;
+			var abl = parseInt(document.getElementById("abl").value);
+			var delta_output = document.getElementById("delta_output");
+			var csv_delta_output = document.getElementById("csv_delta_output");
+			var csv_versig_output = document.getElementById("csv_versig");
+			var results = [];
+			var createSignedResponse = document.getElementById("createSignedResponse").value;
+			var createSignedRequest = document.getElementById("createSignedRequest").value;
+
+			var numberOfTotalTest = numberOfValidTest - numberOfInvalidTest;
+			
+			
+			var totalNumberOfTimes = 0;
+
+			delta_output.value = "";
+			csv_delta_output.value = "";
+			csv_versig_output.value = "";
+			csv_array = new Object();
+			var delta = 0;
+			var ver_times = []
+			var sig_times = []
+			var content_length_array = [];
+			
+
+			for (var j = 0; j < steps; j++) {
+				var times = [];
+				var content_length = 0;
+				var x_response_temp = x_response + ";abl:"+abl
+				var id = new Date().getTime();
+				var path = "/rsc/"+id
+
+				var uri = "http://"+host+path
+				
+				for (var i = 0; i < numberOfTotalTest; i++) {
+				//console.log(i);
+					if(i>=numberOfInvalidTest){
+						results = await createRequest(uri,path,x_response_temp,createSignedResponse,createSignedRequest);
+						delta = results[0]
+						content_length = results[1];
+						ver = results[2]
+						signature_time = results[2];
+						times.push(delta)
+						ver_times.push(ver)
+						sig_times.push(signature_time);
+						content_length_array.push(content_length)
+						totalNumberOfTimes += delta;
+						//console.log(delta);
+						delta_output.value += delta + "\n";
+					} else {
+						await createRequest(path,x_response_temp,createSignedResponse,createSignedRequest);
+					}
+					csv_array[content_length] = times
+					//console.log(typeof abl);
+					abl = parseInt(abl) + parseInt(stepSize)
+					
+				}
+			}
+
+			var csv_string = "";
+			var csv_ver_sig = "";
+			var csv_ver_line = "";
+			var csv_sig_line = "";
+			
+			for(var key in csv_array){
+				var times = csv_array[key]
+				csv_string += key + "\t"
+				csv_ver_line += key + "\t"
+				csv_sig_line += key + "\t"
+				for (var i = 0; i < times.length; i++) {
+					csv_string += times[i] + "\t";
+					csv_ver_line += ver_times[i] + "\t";
+				};
+
+				csv_string +="\n"
+				csv_ver_line+="\n"
+			}
+
+			csv_delta_output.value = csv_string
+
+			for (var i = 0; i < ver_times.length; i++) {
+				csv_ver_sig += content_length_array[i] + "\t" +  ver_times[i] + "\t" +sig_times[i] + "\n"
+			};
+
+			csv_versig_output.value = csv_ver_line;
+
+			
+			
+		}
+
+		var ver_times = []
+		async function startTest(){
+			var numberOfValidTest = parseInt(document.getElementById("numberOfValidTest").value);
+			var numberOfInvalidTest = parseInt(document.getElementById("numberOfInvalidTest").value);
+			var x_response = document.getElementById("x_response").value;
+			var createSignedResponse = document.getElementById("createSignedResponse").value;
+			var createSignedRequest = document.getElementById("createSignedRequest").value;
+			var delta_output = document.getElementById("delta_output");
+			var numberOfTotalTest = numberOfValidTest - numberOfInvalidTest;
+			var id = new Date().getTime();
+			var path = "/rsc/"+id
+			var uri = "http://"+host+path
+			var totalNumberOfTimes = 0;
+			var delta = 0;
+			var results = "";
+			for (var i = 0; i < numberOfTotalTest; i++) {
+				//console.log(i);
+				if(i>=numberOfInvalidTest){
+					results = await createRequest(uri,path,x_response,createSignedResponse,createSignedRequest);
+					delta = results[0]
+					ver_times.push(results[2])
+					totalNumberOfTimes += delta;
+					//console.log(delta);
+					delta_output.value += delta + "\n";
+				} else {
+					await createRequest(path,x_response,createSignedResponse,createSignedRequest);
+				}
+				
+			}
+			
+			//console.log(totalNumberOfTimes/numberOfValidTest)
+			alert("Finish");
+		}
+
+
+		async function createRequest(uri,path,x_response,createSignedResponse,createSignedRequest){
+			var hashOfEmptyBody = "47DEQpj8HBSa-_TImW-5JCeuQeRkm5NMpJWZG3hSuFU"
+
+			var request = new XMLHttpRequest();
+			
+			request.open("GET",path,false);
+			request.setRequestHeader("Accept",accept);
+			request.setRequestHeader("Create-Signature",createSignedResponse);
+			request.setRequestHeader("X-Response",x_response)
+			request.setRequestHeader("Fake-Host",host);
+
+			var start = new Date().getTime();
+			var signature_time = 0;
+			if(createSignedResponse == "true"){
+				var signature_start = new Date().getTime();
+				var signatureHeaderValue = await generateSignatureHeaderValue("GET",path,hashOfEmptyBody,headers);
+				request.setRequestHeader("Signature",signatureHeaderValue);
+				var signature_end = new Date().getTime();
+				signature_time = signature_end - signature_start;
+			}
+			
+			request.send();
+
+			var ver = 0;
+			if(createSignedResponse == "true"){
+				var start_verification = new Date().getTime()
+				var cachekey = host+path;
+				var signatureHeaderOfResponse = request.getResponseHeader("Signature");
+				if(!verifyResponse(signatureHeaderOfResponse,request, cachekey, "GET")){
+					throw new Error('Exception message');
+				} 
+				var end_verification = new Date().getTime()
+				ver = end_verification - start_verification;
+			}
+			var end = new Date().getTime();
+			var results = [end - start, request.getResponseHeader("Content-Length"),ver, signature_time]
+			return results;
+			//console.log(request);
+			
+		}
+		
+  	
+		async function generateSignatureHeaderValue(method, uri, bodyHash, headers){
+			var tvp = new Date().toISOString();
+			var tbs = tvp + "\n";
+			tbs+= method + "\n";
+			tbs+= uri + "\n";
+			tbs+= "HTTP/1.1\n" ;
+			for (var i = 0; i < headers.length; i++) {
+				tbs += headers[i] + "\n";
+			};
+			tbs+=bodyHash;
+
+			//console.log(tbs);
+			var sv_binary = await sign_tbs(private_key_object,tbs)
+			var sv = base64EncodeUrl(arrayBufferToBase64(sv_binary))
+			return "sig=HMAC/SHA256,hash=SHA256,kid=jREHMAKey,tvp="+tvp+",addHeaders=null,sv="+sv;
+		}
+
+		async function verifyResponse(signatureHeader, request, cachekey, method){
+			var tvp, sv;
+			var signatureMetaDataArray = signatureHeader.split(",");
+			for (var i = 0; i < signatureMetaDataArray.length; i++) {
+				var param = signatureMetaDataArray[i].split("=");
+				if(param[0] == "tvp"){
+					tvp = param[1];
+
+				} else if(param[0] == "sv"){
+					sv = param[1];
+				}
+			};
+
+			var tbs = tvp + "\n";
+			tbs += method + "\n";
+			tbs += cachekey + "\n";
+			tbs += "HTTP/1.1" + "\n";
+			tbs += request.status + "\n";
+
+			for (var i = 0; i < tbsResponseHeaders.length; i++) {
+				tbs += request.getResponseHeader(tbsResponseHeaders[i]) ? request.getResponseHeader(tbsResponseHeaders[i]) + "\n" : "\n"
+				
+			};
+
+			bodyHashBinary = await hash(request.responseText);
+			bodyHashBase64 = arrayBufferToBase64(bodyHashBinary);
+			tbs += base64EncodeUrl(bodyHashBase64);
+			//console.log(tbs);
+			var calcSvBinary = await sign_tbs(private_key_object,tbs);
+			var calcSv = base64EncodeUrl(arrayBufferToBase64(calcSvBinary))
+
+			//console.log(calcSv,sv);
+
+			if(calcSv == sv){
+				if(verifiedResponseSignatures.includes(sv)){
+					var cacheControlHeader = request.getResponseHeader("Cache-Control");
+					cacheControlHeaderParams = cacheControlHeader.split(",");
+					maxAge = 0;
+					for (var i = 0; i < cacheControlHeaderParams.length; i++) {
+						if(cacheControlHeaderParams[i].startsWith("max-age="))
+							maxAge = cacheControlHeaderParams[i].split("=")[1]
+					};
+					if(!verifiySignatureFreshness(maxAge,tvp)){
+						return false;
+					}
+				}
+				verifiedResponseSignatures.push(sv);
+				return true;
+			} else {
+				return false;
+			}
+			
+		}
+
+		function verifiySignatureFreshness(maxAge,tvp){
+			var tvpDate = new Date(tvp);
+			var delta = 5000;
+			var signatureExpirationDate = tvpDate.getTime() + delta + maxAge * 1000;
+			var now = new Date().getTime();
+
+			if(now < signatureExpirationDate){
+				return true;
+			} else {
+				return false;
+			}
+		}
+
+
+		
+		function base64EncodeUrl(str){
+    		return str.replace(/\+/g, '-').replace(/\//g, '_').replace(/\=+$/, '');
+		}
+
+
+
+		
+		function base64StringToArrayBuffer(b64str) {
+	      var byteStr = atob(b64str)
+	      var bytes = new Uint8Array(byteStr.length)
+	      for (var i = 0; i < byteStr.length; i++) {
+	        bytes[i] = byteStr.charCodeAt(i)
+	      }
+	      return bytes.buffer
+	    }
+
+	    function arrayBufferToBase64(buffer) {
+		    let binary = '';
+		    let bytes = new Uint8Array(buffer);
+		    let len = bytes.byteLength;
+		    for (let i = 0; i < len; i++) {
+		        binary += String.fromCharCode(bytes[i]);
+		    }
+		    return window.btoa(binary);
+		}
+
+	</script>
+	<script type="text/javascript" src="/public/javascript/webcrypto_hmac.js"></script>
+</body>
+</html>

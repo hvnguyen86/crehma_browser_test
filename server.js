@@ -291,6 +291,10 @@ function requestHandler(req, res) {
         var body  = fs.readFileSync("crehma.html");
 
         return res.end(body);
+    } else if(urlPath == "/crehma_wc"){
+        var body  = fs.readFileSync("crehma_wc.html");
+
+        return res.end(body);
     } else {
       // parse URL
       const parsedUrl = url.parse(req.url);

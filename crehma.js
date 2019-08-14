@@ -124,7 +124,9 @@ function verifyRequest(request){
 	};
 	tbs +=bodyHash;
     
+    console.log("****request*****")
 	console.log(tbs);
+	console.log("****request*****")
 
 	var svOfRequest =  base64url.fromBase64(crypto.createHmac("sha256", key).update(tbs).digest("base64"));
 	
